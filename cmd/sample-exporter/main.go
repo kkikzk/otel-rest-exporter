@@ -15,9 +15,8 @@ import (
 func main() {
 	ctx := context.Background()
 
-	// OTel Collectorへの接続設定
+	// Configure connection to OTel Collector
 	exporter, err := otlpmetricgrpc.New(ctx,
-		otlpmetricgrpc.WithInsecure(),
 		otlpmetricgrpc.WithEndpoint("localhost:4317"),
 		otlpmetricgrpc.WithInsecure(),
 	)
@@ -25,7 +24,7 @@ func main() {
 		log.Fatalf("Failed to create exporter: %v", err)
 	}
 
-	// リソース情報の設定
+	// Set up resource information
 	res, err := resource.New(ctx,
 		resource.WithAttributes(
 			semconv.ServiceNameKey.String("my-service"),
@@ -35,23 +34,23 @@ func main() {
 		log.Fatalf("Failed to create resource: %v", err)
 	}
 
-	// MeterProviderの設定
+	// Configure MeterProvider
 	mp := metric.NewMeterProvider(
 		metric.WithResource(res),
 		metric.WithReader(metric.NewPeriodicReader(exporter)),
 	)
 	otel.SetMeterProvider(mp)
 
-	// メーターの作成
+	// Create a meter
 	meter := otel.Meter("my-meter")
 
-	// カウンターの作成
+	// Create a counter
 	counter, err := meter.Int64Counter("my_counter")
 	if err != nil {
 		log.Fatalf("Failed to create counter: %v", err)
 	}
 
-	// メトリクスの送信
+	// Send metrics
 	for {
 		counter.Add(ctx, 1)
 		log.Println("Metric sent")
