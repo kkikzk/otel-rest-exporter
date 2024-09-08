@@ -1,4 +1,4 @@
-FROM golang:1.22 as metrics-sender-builder
+FROM golang:1.22 AS metrics-sender-builder
 WORKDIR /app
 COPY . .
 RUN go mod tidy

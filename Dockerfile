@@ -1,4 +1,4 @@
-FROM golang:1.22 as otel-builder
+FROM golang:1.22 AS otel-builder
 WORKDIR /app
 COPY . .
 RUN go mod tidy
