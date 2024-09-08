@@ -7,15 +7,14 @@ receivers:
 processors:
 
 exporters:
-# prometheus:
-#    endpoint: "0.0.0.0:8889"
+  prometheus:
+    endpoint: "0.0.0.0:8889"
   rest:
-    endpoint: "0.0.0.0:8890"  # あなたのRESTエンドポイントに合わせて変更してください
+    endpoint: "0.0.0.0:8890"
 
 service:
   pipelines:
     metrics:
       receivers: [otlp]
       processors: []
-      exporters: [rest]
-      #exporters: [prometheus, rest]
+      exporters: [prometheus, rest]

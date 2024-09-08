@@ -9,12 +9,14 @@ import (
 	"go.opentelemetry.io/collector/processor"
 	"go.opentelemetry.io/collector/receiver"
 
-	//prometheusexporter "go.opentelemetry.io/collector/exporter/prometheusexporter"
 	envprovider "go.opentelemetry.io/collector/confmap/provider/envprovider"
 	fileprovider "go.opentelemetry.io/collector/confmap/provider/fileprovider"
 	httpprovider "go.opentelemetry.io/collector/confmap/provider/httpprovider"
 	httpsprovider "go.opentelemetry.io/collector/confmap/provider/httpsprovider"
 	yamlprovider "go.opentelemetry.io/collector/confmap/provider/yamlprovider"
+
+	//prometheusexporter "go.opentelemetry.io/collector/exporter/prometheusexporter"
+	prometheusexporter "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
 	"go.opentelemetry.io/collector/otelcol"
 	batchprocessor "go.opentelemetry.io/collector/processor/batchprocessor"
 	otlpreceiver "go.opentelemetry.io/collector/receiver/otlpreceiver"
@@ -25,7 +27,7 @@ func main() {
 	batchprocessor := batchprocessor.NewFactory()
 	restexporter := restexporter.NewFactory()
 	otlpexporter := otlpexporter.NewFactory()
-	//prometheusexporter := prometheusexporter.NewFactory()
+	prometheusexporter := prometheusexporter.NewFactory()
 
 	factories := otelcol.Factories{
 		Receivers: map[component.Type]receiver.Factory{
@@ -35,9 +37,9 @@ func main() {
 			batchprocessor.Type(): batchprocessor,
 		},
 		Exporters: map[component.Type]exporter.Factory{
-			restexporter.Type(): restexporter,
-			otlpexporter.Type(): otlpexporter,
-			//prometheusexporter.Type(): prometheusexporter,
+			restexporter.Type():       restexporter,
+			otlpexporter.Type():       otlpexporter,
+			prometheusexporter.Type(): prometheusexporter,
 		},
 	}
 

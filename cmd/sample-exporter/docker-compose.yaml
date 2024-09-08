@@ -13,9 +13,11 @@ services:
       - "8890:8890"
 
   prometheus:
+    depends_on:
+      - otel-collector
     image: prom/prometheus:latest
     volumes:
-      - ./prometheus.yaml:/etc/prometheus/prometheus.yaml
+      - ./../prometheus/prometheus.yaml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
 

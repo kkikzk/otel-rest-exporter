@@ -17,6 +17,7 @@ func main() {
 
 	// Configure connection to OTel Collector
 	exporter, err := otlpmetricgrpc.New(ctx,
+		otlpmetricgrpc.WithInsecure(),
 		otlpmetricgrpc.WithEndpoint("localhost:4317"),
 		otlpmetricgrpc.WithInsecure(),
 	)
