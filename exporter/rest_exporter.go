@@ -4,12 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"sync"
 
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/exporter"
+	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 )
 
@@ -76,7 +78,7 @@ func (e *restExporter) ConsumeMetrics(_ context.Context, md pmetric.Metrics) err
 func (e *restExporter) handleMetrics(w http.ResponseWriter, r *http.Request) {
 	e.metricsMux.RLock()
 	defer e.metricsMux.RUnlock()
-	fmt.Println("Received request for /metrics")
+	log.Println("Received request for /metrics")
 
 	response := struct {
 		MetricsCount int            `json:"metrics_count"`
@@ -86,15 +88,47 @@ func (e *restExporter) handleMetrics(w http.ResponseWriter, r *http.Request) {
 		Metrics:      []MetricDetail{},
 	}
 
+	// メトリクスの詳細をログに出力
+	log.Printf("Total metric count: %d\n", e.latestMetrics.MetricCount())
+
 	rms := e.latestMetrics.ResourceMetrics()
 	for i := 0; i < rms.Len(); i++ {
 		rm := rms.At(i)
+		log.Printf("Resource Metrics #%d:\n", i)
+
+		// リソース属性のログ出力
+		attrs := rm.Resource().Attributes()
+		attrs.Range(func(k string, v pcommon.Value) bool {
+			log.Printf("  Resource Attribute: %s = %v\n", k, v.AsString())
+			return true
+		})
+
 		sms := rm.ScopeMetrics()
 		for j := 0; j < sms.Len(); j++ {
 			sm := sms.At(j)
+			log.Printf("  Scope Metrics #%d:\n", j)
+			log.Printf("    Scope Name: %s\n", sm.Scope().Name())
+
 			metrics := sm.Metrics()
 			for k := 0; k < metrics.Len(); k++ {
 				metric := metrics.At(k)
+				log.Printf("    Metric #%d:\n", k)
+				log.Printf("      Name: %s\n", metric.Name())
+				log.Printf("      Description: %s\n", metric.Description())
+				log.Printf("      Unit: %s\n", metric.Unit())
+				log.Printf("      Type: %s\n", metric.Type().String())
+
+				// メトリックタイプに応じたデータポイントのログ出力
+				switch metric.Type() {
+				case pmetric.MetricTypeGauge:
+					dp := metric.Gauge().DataPoints().At(0)
+					log.Printf("      Value: %v\n", dp.DoubleValue())
+				case pmetric.MetricTypeSum:
+					dp := metric.Sum().DataPoints().At(0)
+					log.Printf("      Value: %v\n", dp.DoubleValue())
+					// 他のメトリックタイプも必要に応じて追加
+				}
+
 				response.Metrics = append(response.Metrics, MetricDetail{
 					Name: metric.Name(),
 					Type: metric.Type().String(),
